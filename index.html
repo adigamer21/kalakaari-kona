@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kalakaari Kona | The Rakhi Collection '26</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #fbe9e4; overflow-x: hidden; }
+  #catalog-frame {
+    display: block;
+    width: 100%;
+    border: 0;
+    /* height is set dynamically by the script below, once the catalog has rendered */
+    min-height: 100vh;
+  }
+</style>
+</head>
+<body>
+  <iframe id="catalog-frame" src="rakhi-catalog.html" title="Kalakaari Kona - The Rakhi Collection '26" scrolling="no"></iframe>
+
+  <script>
+  (function () {
+    var frame = document.getElementById('catalog-frame');
+    var styleInjected = false;
+    var attempts = 0;
+    var maxAttempts = 100; // ~30s of polling, covers slow phone connections unpacking the bundle
+
+    // The responsive rules we add on top of the catalog, purely at runtime,
+    // inside the iframe's own document. The source file on disk is never touched.
+    var MOBILE_CSS =
+      '@media (max-width: 780px) {' +
+      '  .wrap { padding: 0 16px 60px !important; }' +
+      '  .header { padding: 32px 20px 48px !important; }' +
+      '  .logo { width: 110px !important; height: 110px !important; }' +
+      '  .title { font-size: clamp(48px, 15vw, 64px) !important; }' +
+      '  .kicker, .bymanju { font-size: 11px !important; letter-spacing: .2em !important; }' +
+      '  .sub { font-size: 16px !important; }' +
+      '  .grid {' +
+      '    display: flex !important;' +
+      '    flex-direction: column !important;' +
+      '    gap: 28px !important;' +
+      '    margin-top: 32px !important;' +
+      '  }' +
+      '  .card { width: 100% !important; }' +
+      '  .imgbox { aspect-ratio: 1/1 !important; }' +
+      '  .amount { font-size: 22px !important; }' +
+      '  .footer { margin-top: 48px !important; font-size: 13px !important; }' +
+      '}' +
+      '@media (max-width: 420px) {' +
+      '  .title { font-size: 42px !important; }' +
+      '}';
+
+    function tryInject() {
+      attempts++;
+      var doc;
+      try { doc = frame.contentDocument || frame.contentWindow.document; }
+      catch (e) { doc = null; }
+
+      if (doc && doc.querySelector('.grid') && !styleInjected) {
+        var styleEl = doc.createElement('style');
+        styleEl.setAttribute('data-injected-by', 'host-page');
+        styleEl.textContent = MOBILE_CSS;
+        doc.head.appendChild(styleEl);
+        styleInjected = true;
+      }
+
+      resizeFrame(doc);
+
+      if (attempts < maxAttempts) {
+        setTimeout(tryInject, 300);
+      }
+    }
+
+    function resizeFrame(doc) {
+      if (!doc || !doc.documentElement) return;
+      var h = Math.max(
+        doc.documentElement.scrollHeight,
+        doc.body ? doc.body.scrollHeight : 0
+      );
+      if (h > 0) frame.style.height = h + 'px';
+    }
+
+    frame.addEventListener('load', function () {
+      attempts = 0;
+      tryInject();
+    });
+
+    window.addEventListener('resize', function () {
+      try {
+        var doc = frame.contentDocument || frame.contentWindow.document;
+        resizeFrame(doc);
+      } catch (e) {}
+    });
+
+    // Kick things off in case 'load' already fired before this script ran
+    tryInject();
+  })();
+  </script>
+</body>
+</html>
